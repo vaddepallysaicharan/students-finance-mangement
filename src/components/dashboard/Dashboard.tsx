@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Wallet, 
   Target, 
@@ -13,8 +14,16 @@ import {
   Home,
   Utensils,
   Star,
-  Plus
+  Plus,
+  Settings,
+  Trophy
 } from "lucide-react";
+
+import AchievementBadge from "@/components/gamification/AchievementBadge";
+import SavingsChallenge from "@/components/gamification/SavingsChallenge";
+import InteractiveGoalSetting from "@/components/goals/InteractiveGoalSetting";
+import SmartAlerts from "@/components/alerts/SmartAlerts";
+import PrivacySettings from "@/components/privacy/PrivacySettings";
 
 const Dashboard = () => {
   // Mock data for student expenses
@@ -31,10 +40,11 @@ const Dashboard = () => {
     { category: "Housing", amount: 26, icon: Home, color: "text-green-500" }
   ];
 
-  const goals = [
-    { name: "Emergency Fund", current: 250, target: 500, progress: 50 },
-    { name: "New Laptop", current: 800, target: 1200, progress: 67 },
-    { name: "Spring Break", current: 150, target: 600, progress: 25 }
+  const achievements = [
+    { type: "streak" as const, title: "7-Day Streak", description: "Tracked expenses for 7 days", unlocked: true },
+    { type: "goal" as const, title: "Goal Achiever", description: "Reached your first savings goal", unlocked: true },
+    { type: "saver" as const, title: "Smart Saver", description: "Saved $100 this month", unlocked: false },
+    { type: "budgeter" as const, title: "Budget Master", description: "Stayed under budget for 3 months", unlocked: false },
   ];
 
   return (
@@ -43,13 +53,24 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Hi Sarah! 👋</h1>
+            <h1 className="text-3xl font-bold text-foreground animate-slide-up">Hi Sarah! 👋</h1>
             <p className="text-muted-foreground">Let's check your financial progress today</p>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge className="bg-success text-success-foreground">
+                <Trophy className="w-3 h-3 mr-1" />
+                2 achievements unlocked
+              </Badge>
+            </div>
           </div>
-          <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Expense
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <Settings className="w-4 h-4" />
+            </Button>
+            <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 animate-pulse-glow">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Expense
+            </Button>
+          </div>
         </div>
 
         {/* Overview Cards */}
@@ -109,66 +130,80 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Expense Categories */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-warning" />
-                Expense Categories
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {expenses.map((expense, index) => {
-                const Icon = expense.icon;
-                return (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-full bg-background ${expense.color}`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <span className="font-medium">{expense.category}</span>
-                    </div>
-                    <span className="font-bold text-lg">${expense.amount}</span>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
+        {/* Main Content */}
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="goals">Goals</TabsTrigger>
+            <TabsTrigger value="challenges">Challenges</TabsTrigger>
+            <TabsTrigger value="alerts">Alerts</TabsTrigger>
+            <TabsTrigger value="privacy">Privacy</TabsTrigger>
+          </TabsList>
 
-          {/* Goals Tracking */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-success" />
-                Your Goals
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {goals.map((goal, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">{goal.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      ${goal.current} / ${goal.target}
-                    </span>
-                  </div>
-                  <Progress value={goal.progress} className="h-3" />
-                  <div className="text-right">
-                    <Badge variant={goal.progress > 50 ? "default" : "secondary"}>
-                      {goal.progress}% complete
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-              <Button variant="outline" className="w-full mt-4">
-                <Plus className="w-4 h-4 mr-2" />
-                Add New Goal
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="dashboard" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Expense Categories */}
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-warning" />
+                    Expense Categories
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {expenses.map((expense, index) => {
+                    const Icon = expense.icon;
+                    return (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all duration-300 hover:scale-[1.02]">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-full bg-background ${expense.color}`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <span className="font-medium">{expense.category}</span>
+                        </div>
+                        <span className="font-bold text-lg">${expense.amount}</span>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+
+              {/* Achievements */}
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-gamify" />
+                    Recent Achievements
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {achievements.slice(0, 2).map((achievement, index) => (
+                    <AchievementBadge key={index} {...achievement} />
+                  ))}
+                  <Button variant="outline" className="w-full">
+                    View All Achievements
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="goals">
+            <InteractiveGoalSetting />
+          </TabsContent>
+
+          <TabsContent value="challenges">
+            <SavingsChallenge />
+          </TabsContent>
+
+          <TabsContent value="alerts">
+            <SmartAlerts />
+          </TabsContent>
+
+          <TabsContent value="privacy">
+            <PrivacySettings />
+          </TabsContent>
+        </Tabs>
 
         {/* Smart Insights */}
         <Card className="shadow-lg">
